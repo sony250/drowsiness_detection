@@ -1,0 +1,53 @@
+import cv2
+from os import listdir
+from os.path import isfile, join
+import numpy
+from pygame import mixer
+
+mixer.init()
+sound = mixer.Sound('alarm.wav')
+
+eye_Cascade = cv2.CascadeClassifier('haarcascade_eye_tree_eyeglasses.xml')
+face_Cascade = cv2.CascadeClassifier('haarcascade_frontalface_alt.xml')
+while 1:
+    mypath = "folder path to read image"
+    onlyfiles = [f for f in listdir(mypath) if isfile(join(mypath, f))]
+    images = numpy.empty(len(onlyfiles), dtype=object)
+    count = 0
+    for n in range(0, len(onlyfiles)):
+        images[n] = cv2.imread(join(mypath, onlyfiles[n]))
+        frame = cv2.cvtColor(images[n], cv2.COLOR_BGR2GRAY)
+        faces = face_Cascade.detectMultiScale(frame, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
+        for (x, y, w, h) in faces:
+            cv2.rectangle(images[n], (x, y), (x + w, y + h), (0, 255, 0), 2)
+            eyes = eye_Cascade.detectMultiScale(frame, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
+            if len(eyes) == 0:
+                print('(%d)closed'%n)
+                #cv2.imshow('img', images[n])
+                count += 1
+                if count < 3 and count != 0:
+                    print(' eyes blinking')
+                if count > 3:
+                    print('sleep detected')
+                    sound.play()
+                    k = cv2.waitKey(0)
+                    if k == 27:
+                        break
+                    cv2.destroyAllWindows()
+            else:
+               print('(%d)eyes!!!'%n)
+                #cv2.imshow('img', images[n])
+                #cv2.imshow('image', frame)
+
+
+            k = cv2.waitKey(0)
+            if k == 27:
+                break
+            cv2.destroyAllWindows()
+    k = cv2.waitKey(0)
+    if k == 27:
+        break
+    cv2.destroyAllWindows()
+
+
+
